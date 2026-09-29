@@ -1,9 +1,9 @@
 #!/usr/bin/env node
 import * as cdk from 'aws-cdk-lib/core';
-import { AutoScalingGroupStack } from '../lib/auto-scaling-group-stack';
+import { App } from '../lib/app';
 
 const app = new cdk.App();
-new AutoScalingGroupStack(app, 'AutoScalingGroupStack', {
+new App(app, 'PHPCore', {
   /* If you don't specify 'env', this stack will be environment-agnostic.
    * Account/Region-dependent features and context lookups will not work,
    * but a single synthesized template can be deployed anywhere. */

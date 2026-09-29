@@ -9,7 +9,7 @@ import {
   UserData,
 } from "aws-cdk-lib/aws-ec2";
 
-export class AutoScalingGroupStack extends Stack {
+export class App extends Stack {
   constructor(scope: Construct, id: string, props?: StackProps) {
     super(scope, id, props);
 
