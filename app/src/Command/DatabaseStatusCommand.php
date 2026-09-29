@@ -39,7 +39,7 @@ final class DatabaseStatusCommand extends Command
     }
 
     /**
-     * @param list<array{filename: string, state: string}> $rows
+     * @param  list<array{filename: string, state: string}>  $rows
      */
     private function renderSection(SymfonyStyle $io, string $title, array $rows): void
     {
