@@ -1,9 +1,44 @@
 services:
   server:
     image: nginx:latest
+    ports:
+      - "8080:80"
     volumes:
-      - ./nginx/default.conf:/etc/nginx/conf.d/default.conf
+      - ./nginx/default.conf:/etc/nginx/conf.d/default.conf:ro
+      - ./app:/var/www/html:ro
+    depends_on:
+      - app
+
   app:
-    image: php-8.5
+    build: ./app
+    working_dir: /var/www/html
+    environment:
+      DATABASE_URL: "pgsql:host=db;port=5432;dbname=app"
+      DATABASE_USER: app
+      DATABASE_PASSWORD: secret
+      MIGRATIONS_PATH: /var/www/db/migrations
+      SEEDS_PATH: /var/www/db/seeds
     volumes:
       - ./app:/var/www/html
+      - ./db:/var/www/db:ro
+    command: sh -c "composer install --no-interaction && php-fpm"
+    depends_on:
+      - db
+
+  db:
+    # Postgres 18 is the current latest major version; pinning the major keeps builds predictable.
+    # Useful built-in features: transactions, constraints, indexes, JSONB, full-text search,
+    # views/materialized views, triggers/functions, and LISTEN/NOTIFY pub-sub.
+    image: postgres:18
+    environment:
+      POSTGRES_DB: app
+      POSTGRES_USER: app
+      POSTGRES_PASSWORD: secret
+    volumes:
+      - postgres-data:/var/lib/postgresql
+      - ./db/init:/docker-entrypoint-initdb.d:ro
+    ports:
+      - "5432:5432"
+
+volumes:
+  postgres-data:

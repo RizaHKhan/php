@@ -1,0 +1,2 @@
+-- Schema is managed by the custom migration runner now.
+-- Use `make migrate` to apply db/migrations/*.sql and `make seed` to apply db/seeds/*.sql.
