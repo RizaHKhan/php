@@ -11,13 +11,17 @@ return (new Config())
         '@auto' => true,
         '@auto:risky' => true,
         '@PhpCsFixer' => true,
-        'php_unit_test_case_static_method_calls' => ['call_type' => 'this']
+        'binary_operator_spaces' => [
+            'operators' => [
+                '=' => 'align_single_space_minimal',
+            ],
+        ],
+        'php_unit_test_case_static_method_calls' => ['call_type' => 'this'],
     ])
     // 💡 by default, Fixer looks for `*.php` files excluding `./vendor/` - here, you can groom this config
     ->setFinder(
         (new Finder())
             // 💡 root folder to check
             ->in(__DIR__)
-            
     )
 ;

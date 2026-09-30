@@ -1,0 +1,163 @@
+#!/usr/bin/env php
+<?php
+
+require __DIR__.'/../vendor/autoload.php';
+
+use App\Application;
+use App\Database\Database;
+use App\Database\SqlFileRunner;
+
+$command = $argv[1] ?? 'help';
+
+try {
+    exit(match ($command) {
+        'migrate', 'db:migrate' => migrate(),
+        'seed', 'db:seed' => seed(),
+        'status', 'db:status' => status(),
+        'help', '--help', '-h', 'list' => help(),
+        'routes', 'debug:router' => routes(),
+        default => unknownCommand($command),
+    });
+} catch (Throwable $throwable) {
+    fwrite(STDERR, "Error: {$throwable->getMessage()}\n");
+
+    exit(1);
+}
+
+function migrate(): int
+{
+    $path    = getenv('MIGRATIONS_PATH') ?: '/var/www/db/migrations';
+    $runner  = new SqlFileRunner(Database::connect());
+    $pending = $runner->pending($path, 'schema_migrations');
+
+    if ([] === $pending) {
+        echo "No pending migrations.\n";
+
+        return 0;
+    }
+
+    foreach ($pending as $filename) {
+        echo "Applying {$filename}...\n";
+    }
+
+    $runner->run($path, 'schema_migrations');
+    echo "Migrations complete.\n";
+
+    return 0;
+}
+
+function seed(): int
+{
+    $path    = getenv('SEEDS_PATH') ?: '/var/www/db/seeds';
+    $runner  = new SqlFileRunner(Database::connect());
+    $pending = $runner->pending($path, 'schema_seeds');
+
+    if ([] === $pending) {
+        echo "No pending seeders.\n";
+
+        return 0;
+    }
+
+    foreach ($pending as $filename) {
+        echo "Applying {$filename}...\n";
+    }
+
+    $runner->run($path, 'schema_seeds');
+    echo "Seeders complete.\n";
+
+    return 0;
+}
+
+function status(): int
+{
+    $runner = new SqlFileRunner(Database::connect());
+
+    renderStatus('Migrations', $runner->status(
+        getenv('MIGRATIONS_PATH') ?: '/var/www/db/migrations',
+        'schema_migrations'
+    ));
+
+    renderStatus('Seeders', $runner->status(
+        getenv('SEEDS_PATH') ?: '/var/www/db/seeds',
+        'schema_seeds'
+    ));
+
+    return 0;
+}
+
+/**
+ * @param list<array{filename: string, state: string}> $rows
+ */
+function renderStatus(string $title, array $rows): void
+{
+    echo "\n{$title}\n";
+    echo str_repeat('-', strlen($title))."\n";
+
+    if ([] === $rows) {
+        echo "No SQL files found.\n";
+
+        return;
+    }
+
+    foreach ($rows as $row) {
+        printf("%-8s %s\n", $row['state'], $row['filename']);
+    }
+}
+
+function help(): int
+{
+    echo <<<'HELP'
+PHP App Database CLI
+
+Usage:
+  php bin/console <command>
+
+Commands:
+  migrate   Apply pending SQL migrations
+  seed      Apply pending SQL seeders
+  status    Show migration and seeder status
+  routes    List registered controller routes
+  help      Show this help
+
+HELP;
+
+    return 0;
+}
+
+function unknownCommand(string $command): int
+{
+    fwrite(STDERR, "Unknown command: {$command}\n\n");
+    help();
+
+    return 1;
+}
+
+/**
+ * List the routes registered from controller attributes.
+ */
+function routes(): int
+{
+    $routes = Application::router()->routes();
+
+    if ([] === $routes) {
+        echo "No routes registered.\n";
+
+        return 0;
+    }
+
+    printf("%-20s %-10s %-30s %s\n", 'Name', 'Methods', 'Path', 'Controller');
+    printf("%-20s %-10s %-30s %s\n", str_repeat('-', 20), str_repeat('-', 10), str_repeat('-', 30), str_repeat('-', 30));
+
+    foreach ($routes as $route) {
+        printf(
+            "%-20s %-10s %-30s %s::%s\n",
+            $route['name'] ?? '',
+            implode('|', $route['methods']),
+            $route['path'],
+            $route['class'],
+            $route['method']
+        );
+    }
+
+    return 0;
+}

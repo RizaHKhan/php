@@ -2,4 +2,4 @@
 
 namespace Interface;
 
-interface User {}
+interface Model {}

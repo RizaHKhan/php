@@ -56,13 +56,16 @@ db-logs:
 	$(COMPOSE) logs -f $(DB_SERVICE)
 
 migrate:
-	$(COMPOSE) exec $(APP_SERVICE) php bin/db.php migrate
+	$(COMPOSE) exec $(APP_SERVICE) php bin/console migrate
 
 seed:
-	$(COMPOSE) exec $(APP_SERVICE) php bin/db.php seed
+	$(COMPOSE) exec $(APP_SERVICE) php bin/console seed
 
 db-status:
-	$(COMPOSE) exec $(APP_SERVICE) php bin/db.php status
+	$(COMPOSE) exec $(APP_SERVICE) php bin/console status
+
+routes:
+	$(COMPOSE) exec $(APP_SERVICE) php bin/console routes
 
 clean:
 	$(COMPOSE) down --remove-orphans

@@ -1,13 +1,12 @@
 <?php
 
-require __DIR__ . '/vendor/autoload.php';
+use App\Application;
 
-use App\Router;
+require __DIR__.'/vendor/autoload.php';
 
-// Default PHP sessions use a browser-session cookie: it expires when the browser closes.
-// The server-side session file lifetime is controlled by PHP's session.gc_maxlifetime setting.
-session_start();
+$router = Application::router();
 
-$router = new Router();
-
-echo $router->dispatch($_SERVER['REQUEST_URI'] ?? '/');
+echo $router->dispatch(
+    $_SERVER['REQUEST_METHOD'],
+    $_SERVER['REQUEST_URI']
+);

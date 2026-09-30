@@ -7,13 +7,11 @@ use Throwable;
 
 final class SqlFileRunner
 {
-    public function __construct(private readonly PDO $pdo)
-    {
-    }
+    public function __construct(private readonly PDO $pdo) {}
 
     public function ensureTrackingTables(): void
     {
-        $this->pdo->exec(<<<SQL
+        $this->pdo->exec(<<<'SQL'
 CREATE TABLE IF NOT EXISTS schema_migrations (
     filename TEXT PRIMARY KEY,
     applied_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
@@ -95,7 +93,7 @@ SQL);
 
         return array_values(array_filter(
             array_map('basename', $this->sqlFiles($path)),
-            static fn (string $filename): bool => !isset($applied[$filename])
+            static fn (string $filename): bool => ! isset($applied[$filename])
         ));
     }
 
@@ -104,7 +102,7 @@ SQL);
      */
     private function sqlFiles(string $path): array
     {
-        $files = glob(rtrim($path, '/') . '/*.sql') ?: [];
+        $files = glob(rtrim($path, '/').'/*.sql') ?: [];
         sort($files, SORT_STRING);
 
         return $files;

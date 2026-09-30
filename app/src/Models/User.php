@@ -4,7 +4,7 @@ namespace Models;
 
 use Interface\User as UserInterface;
 
-class User implements UserInterface 
+class User implements Model 
 {
     public int $id;
 
